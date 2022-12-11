@@ -74,7 +74,7 @@ c      common/to_colstats/ncols,ncolflow,ncolalt,ic
       include 'vector.inc'
       include 'coupl.inc'
       INTEGER VECSIZE_USED
-      DATA VECSIZE_USED/VECSIZE_MEMMAX/
+      DATA VECSIZE_USED/VECSIZE_MEMMAX/ ! can be changed at runtime
 
 C-----
 C  BEGIN CODE
