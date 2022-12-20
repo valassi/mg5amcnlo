@@ -7,6 +7,9 @@ C
 C Returns amplitude squared summed/avg over colors
 c and helicities
 c for the point in phase space P(0:3,NEXTERNAL)
+c INPUT:
+C  chanel, channel of integration under consideration
+C        related by symmetry to the G directory (but not always that value)
 c  potentially times multi-channel weight
 C  
 %(process_lines)s
@@ -52,6 +55,7 @@ C
         INTEGER JC(NEXTERNAL),II
         REAL*8 XTOT
         INTEGER  J, JJ
+
       double precision get_channel_cut
       external get_channel_cut
 
@@ -59,7 +63,7 @@ C
 C GLOBAL VARIABLES
 C
     include '../../Source/vector.inc'
-    DOUBLE PRECISION AMP2(MAXAMPS), JAMP2(0:MAXFLOW)
+    DOUBLE PRECISION AMP2(LMAXCONFIGS), JAMP2(0:MAXFLOW)
 
 
 C
@@ -79,7 +83,7 @@ c      	      	      	   2 means approximation by the	denominator of the propaga
     INTEGER          ISUM_HEL
     LOGICAL                    MULTI_CHANNEL
     COMMON/TO_MATRIX/ISUM_HEL, MULTI_CHANNEL
-%(define_iconfigs_lines)s
+
 ${helicity_lines}
 %(den_factor_line)s
 
@@ -92,7 +96,7 @@ C ----------
     ENDDO
      
     IF (multi_channel) THEN
-        DO I=1,NDIAGS
+        DO I=1,LMAXCONFIGS
             AMP2(I)=0D0
         ENDDO
     ENDIF
@@ -137,19 +141,16 @@ c         Set right sign for ANS, based on sign of chosen helicity
     IF (MULTI_CHANNEL) THEN
         XTOT=0D0
         DO I=1,LMAXCONFIGS
-	    J = CONFSUB(%(proc_id)s, I)
-	    if (J.ne.0)then
 	      if (sde_strat.eq.1)then
-	         AMP2(J) = AMP2(J) * GET_CHANNEL_CUT(P, I)
+	         AMP2(I) = AMP2(I) * GET_CHANNEL_CUT(P, I)
                else
-	     	         AMP2(J) = GET_CHANNEL_CUT(P, I)
+	     	 AMP2(I) = GET_CHANNEL_CUT(P, I)
 	       endif
-             XTOT=XTOT+AMP2(J)
+             XTOT=XTOT+AMP2(I)
 
-             endif
         ENDDO
         IF (XTOT.NE.0D0) THEN
-	   ANS=ANS*AMP2(channel)/XTOT
+	   ANS=ANS*AMP2(ICONFIG)/XTOT
         ELSE IF(ANS.ne.0d0) THEN
 			write(*,*) "Problem in the multi-channeling. All amp2 are zero but not the total matrix-element"
 	        stop 1
@@ -226,7 +227,7 @@ C
 C GLOBAL VARIABLES
 C
     include '../../Source/vector.inc'
-    Double Precision amp2(maxamps), jamp2(0:maxflow)
+    Double Precision amp2(*), jamp2(0:maxflow)
     include 'coupl.inc'
 
        double precision tmin_for_channel
